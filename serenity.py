@@ -22,8 +22,6 @@ def search_alts_data(line):
         mainch=line.split('"')[3]
     return (altch,mainch)
 
-
-
 def calculate_depth(line,depth):
     if re.search('{',line):
         depth+=1
@@ -47,34 +45,39 @@ def process_lua_file(inFile):
         if note_check and depth==2:
             chname,totdkp,netdkp=search_note_data(line,chname,totdkp,netdkp)
         if chname and netdkp and totdkp:
-            build_note_data(chname,totdkp,netdkp,note_data)
+            build_note_data(chname,totdkp,netdkp)
             chname=netdkp=totdkp=''
         if alts_check and depth==1:
             altch,mainch=search_alts_data(line)
             build_alts_data(altch,mainch)
-    return note_data,alts_data
+    return data
 
-def build_note_data(chname,totdkp,netdkp,note_data):
-    note_data['QDKP2note'].update({chname:[(str(int(totdkp)-int(netdkp))),totdkp]})
+def build_note_data(chname,totdkp,netdkp):
+    data['QDKP2note'].update({chname:[(str(int(totdkp)-int(netdkp))),totdkp]})
+    return
 
 def build_alts_data(altch,mainch):
     if altch and mainch:
-        alts_data.update({altch:mainch})
+        data['QDKP2_Alts'].update({altch:mainch})
+    return
 
 def note_data_listing():
-    for i in sorted(note_data['QDKP2note']):
-        if i in alts_data:
-            print ('%-30s Net:%-8s Tot:%s' %((i+' ('+alts_data[i]+' alt)'),note_data['QDKP2note'][i][0],note_data['QDKP2note'][i][1]))
+    for i in sorted(data['QDKP2note']):
+        if i in data['QDKP2_Alts']:
+            print ('%-30s Net:%-8s Tot:%s' %((i+' ('+data['QDKP2_Alts'][i]+' alt)'),data['QDKP2note'][i][0],data['QDKP2note'][i][1]))
         else:
-            print ('%-30s Net:%-8s Tot:%s' %(i,note_data['QDKP2note'][i][0],note_data['QDKP2note'][i][1]))
+            print ('%-30s Net:%-8s Tot:%s' %(i,data['QDKP2note'][i][0],data['QDKP2note'][i][1]))
+    return
+
 def note_data_search(chname):
-    if chname in note_data['QDKP2note']:
-        if chname in alts_data:
-            print ('%s Net:%s Tot:%s' %((chname+' ('+alts_data[chname]+' alt)'),note_data['QDKP2note'][chname][0],note_data['QDKP2note'][chname][1]))
+    if chname in data['QDKP2note']:
+        if chname in data['QDKP2_Alts']:
+            print ('%s Net:%s Tot:%s' %((chname+' ('+data['QDKP2_Alts'][chname]+' alt)'),data['QDKP2note'][chname][0],data['QDKP2note'][chname][1]))
         else:
-            print ('%s Net:%s Tot:%s' %(chname,note_data['QDKP2note'][chname][0],note_data['QDKP2note'][chname][1]))
+            print ('%s Net:%s Tot:%s' %(chname,data['QDKP2note'][chname][0],data['QDKP2note'][chname][1]))
     else:
         print ('Nem találtam ilyen karakter nevet!')
+    return
 
 def menu():
     while 1:
@@ -105,15 +108,11 @@ def menu():
                 input('Nyomj entert a továbblépéshez...')
         elif menu_item == '2':
             exit()
-
-
-
-
+    return
 
 inFile = open('QDKP_V2.lua',encoding='utf-8')
-note_data={'QDKP2note':{}}
-alts_data={}
-note_data,alts_data=process_lua_file(inFile)
+data={'QDKP2note':{},'QDKP2_Alts':{}}
+data=process_lua_file(inFile)
 inFile.close()
 menu()
 
